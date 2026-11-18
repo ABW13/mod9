@@ -68,3 +68,14 @@ def test_delete_removes_your_document(client, auth):
     ).json()
     assert client.delete(f"/documents/{doc['id']}", headers=auth).status_code == 204
     assert client.get("/documents", headers=auth).json() == []
+
+
+def test_uploading_the_same_filename_replaces_rather_than_duplicates(client, auth):
+    for _ in range(3):
+        client.post(
+            "/documents",
+            files={"file": ("notes.txt", SAMPLE, "text/plain")},
+            headers=auth,
+        )
+    listed = client.get("/documents", headers=auth).json()
+    assert len(listed) == 1, "re-uploading a filename should not create a second row"

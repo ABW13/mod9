@@ -66,6 +66,21 @@ def upload_document(
     stored_name = f"{user.id}_{Path(file.filename).name}"
     (upload_dir / stored_name).write_bytes(data)
 
+    # Uploading the same filename again replaces the earlier row rather than
+    # adding a second one. Without this, re-uploading duplicates the document
+    # and the next ingest indexes both copies.
+    existing = db.scalar(
+        select(Document).where(
+            Document.owner_id == user.id, Document.filename == file.filename
+        )
+    )
+    if existing is not None:
+        rag.delete_document_chunks(user.id, existing.id)
+        existing.chunk_count = 0
+        db.commit()
+        db.refresh(existing)
+        return existing
+
     doc = Document(owner_id=user.id, filename=file.filename, chunk_count=0)
     db.add(doc)
     db.commit()
