@@ -61,3 +61,9 @@ def test_protected_route_requires_a_token(client):
 def test_protected_route_rejects_a_bad_token(client):
     r = client.get("/documents", headers={"Authorization": "Bearer nonsense"})
     assert r.status_code == 401
+
+
+def test_health_needs_no_token(client):
+    r = client.get("/health")
+    assert r.status_code == 200
+    assert r.json()["status"] == "healthy"

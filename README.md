@@ -128,6 +128,7 @@ Open the frontend in a browser on port 8501. Register an account, then:
 | `/documents` | GET | bearer | List your documents |
 | `/documents` | POST | bearer | Upload a text file |
 | `/documents/{id}` | DELETE | bearer | Delete a document and its chunks |
+| `/documents/{id}/chunks` | GET | bearer | The indexed chunks for one document |
 | `/ingest` | POST | bearer | Chunk and index your documents |
 | `/ask` | POST | bearer | Answer a question from your documents |
 | `/questions` | GET | bearer | Your question history |
@@ -212,12 +213,14 @@ that visible to a reader.
 
     docker compose exec backend sh -c "cd /app && python -m pytest tests/ -v"
 
-Twenty tests in three files:
+Twenty-two tests in three files:
 
 - `tests/test_auth.py` — registration, duplicate rejection, login, invalid
-  credentials, and protected routes refusing a missing or malformed token.
-- `tests/test_crud.py` — upload, unsupported file types, listing, and the
-  ownership rules: another account cannot list or delete your documents.
+  credentials, protected routes refusing a missing or malformed token, and the
+  public health endpoint.
+- `tests/test_crud.py` — upload, unsupported file types, listing, the chunks
+  endpoint, duplicate uploads replacing rather than accumulating, and the
+  ownership rules: another account cannot list, delete, or inspect your documents.
 - `tests/test_rag.py` — chunking, ingestion, a structured answer with citations,
   the guardrail refusing, and questions being recorded in history.
 

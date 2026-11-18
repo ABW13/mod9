@@ -79,3 +79,40 @@ def test_uploading_the_same_filename_replaces_rather_than_duplicates(client, aut
         )
     listed = client.get("/documents", headers=auth).json()
     assert len(listed) == 1, "re-uploading a filename should not create a second row"
+
+
+def test_chunks_endpoint_lists_what_was_indexed(client, auth):
+    doc = client.post(
+        "/documents",
+        files={"file": ("notes.txt", SAMPLE, "text/plain")},
+        headers=auth,
+    ).json()
+    client.post("/ingest", headers=auth)
+
+    r = client.get(f"/documents/{doc['id']}/chunks", headers=auth)
+    assert r.status_code == 200
+    chunks = r.json()
+    assert chunks, "an indexed document should report at least one chunk"
+    assert chunks[0]["chunk"] == 0
+
+
+def test_chunks_endpoint_hides_another_users_document(client, auth):
+    doc = client.post(
+        "/documents",
+        files={"file": ("mine.txt", SAMPLE, "text/plain")},
+        headers=auth,
+    ).json()
+    client.post(
+        "/auth/register",
+        json={"email": "nosy@example.com", "password": "hunter2hunter2"},
+    )
+    other = client.post(
+        "/auth/token",
+        data={"username": "nosy@example.com", "password": "hunter2hunter2"},
+    ).json()["access_token"]
+
+    r = client.get(
+        f"/documents/{doc['id']}/chunks",
+        headers={"Authorization": f"Bearer {other}"},
+    )
+    assert r.status_code == 404

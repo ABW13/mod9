@@ -116,3 +116,50 @@ def delete_document(
 
     db.delete(doc)
     db.commit()
+
+@router.get("/{document_id}/chunks")
+def list_chunks(
+    document_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """List the indexed chunks for one of the caller's documents.
+
+    The document lookup includes owner_id, so another account's document is a
+    404 rather than a 403 -- it does not reveal that the row exists.
+    """
+    doc = db.scalar(
+        select(Document).where(
+            Document.id == document_id, Document.owner_id == user.id
+        )
+    )
+    if doc is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
+        )
+
+    collection = rag.get_collection()
+    found = collection.get(
+        where={"$and": [
+            {"owner_id": user.id},
+            {"document_id": document_id},
+        ]},
+        include=["metadatas", "documents"],
+    )
+
+    chunks = []
+    for chunk_id, text, meta in zip(
+        found.get("ids", []),
+        found.get("documents", []),
+        found.get("metadatas", []),
+    ):
+        meta = meta or {}
+        chunks.append({
+            "id": chunk_id,
+            "chunk": meta.get("chunk", 0),
+            "source": meta.get("source", doc.filename),
+            "text": text,
+        })
+
+    chunks.sort(key=lambda c: c["chunk"])
+    return chunks
