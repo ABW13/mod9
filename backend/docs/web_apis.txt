@@ -1,0 +1,115 @@
+Web APIs
+
+What an API is
+
+An API is a contract: a defined way for one program to ask another to do
+something. A web API uses HTTP as the transport, which means requests carry a
+method, a URL, headers and sometimes a body, and responses carry a status code,
+headers and usually a body.
+
+The contract matters more than the implementation. Two services agreeing on an
+API can be written in different languages, deployed separately, and replaced
+independently, so long as neither changes the contract.
+
+HTTP methods
+
+GET retrieves a resource and must not change state. A GET that deletes something
+is a bug waiting to happen, because browsers, proxies and crawlers all assume GET
+requests are safe to repeat.
+
+POST creates a resource or performs an action. It is not idempotent: sending it
+twice creates two things.
+
+PUT replaces a resource entirely and is idempotent. Sending it twice leaves the
+same result as sending it once.
+
+PATCH modifies part of a resource.
+
+DELETE removes a resource and is idempotent: deleting something already deleted
+is not an error in most designs, though some return 404 to be informative.
+
+Idempotence matters because networks fail. A client that does not receive a
+response cannot know whether the request took effect, and if the method is
+idempotent it can simply retry.
+
+Status codes
+
+Codes are grouped by first digit. 2xx means success. 3xx means redirection. 4xx
+means the client made a mistake. 5xx means the server did.
+
+The useful ones in practice: 200 for a successful read, 201 for a successful
+creation with a Location header, 204 for success with no body, 400 for a
+malformed request, 401 for missing or invalid authentication, 403 for
+authenticated but not permitted, 404 for absent, 409 for a conflict such as a
+duplicate, 422 for a request that is well-formed but fails validation, and 500
+for an unhandled server error.
+
+Choosing between 401 and 403 confuses people. 401 means the server does not know
+who you are. 403 means it does and you are not allowed.
+
+Choosing between 404 and 403 for someone else's resource is a deliberate privacy
+decision. Returning 404 reveals nothing about whether the resource exists, which
+is usually the better choice.
+
+Representing data
+
+JSON is the default. It is readable, widely supported and maps naturally onto the
+dictionaries and objects most languages use.
+
+A response should be consistent. If one endpoint wraps its payload in a data key
+and another does not, every client has to special-case both.
+
+Versioning
+
+An API that changes breaks its clients. Versioning gives a way to change without
+breaking: the old version keeps working while clients migrate.
+
+Versioning by URL path, such as /v1/documents, is the most visible and the easiest
+to test in a browser. Versioning by header is more theoretically pure and much
+harder to debug.
+
+Authentication
+
+Authentication establishes who is calling. Authorization decides what they may
+do. They are separate concerns and are frequently conflated.
+
+Bearer tokens are the common approach for APIs. The client sends a token in the
+Authorization header, and the server validates it on every request. Tokens are
+usually JSON Web Tokens, which carry a signed payload the server can verify
+without a database lookup.
+
+A JWT is signed, not encrypted, so its contents are readable by anyone holding
+it. Nothing secret should go in the payload.
+
+Validation
+
+Any input from a client is untrusted. Validation belongs at the boundary, so
+every endpoint body is checked before the logic runs.
+
+Declaring the expected shape produces a clear error for the client and lets the
+rest of the code assume its inputs are valid. A framework that derives the
+validation from type hints means the check cannot drift from the code.
+
+Rate limiting
+
+Without a limit, one client can consume all capacity. Rate limiting caps requests
+per client per period and returns 429 when exceeded.
+
+It is also a security measure: credential stuffing and scraping both depend on
+making many requests quickly.
+
+Pagination
+
+An endpoint returning every row works until the table grows. Pagination splits a
+large result into pages, either by offset and limit or by a cursor.
+
+Offset pagination is simple but degrades: the database still has to skip past
+every earlier row. Cursor pagination stays fast on large tables but cannot jump
+to an arbitrary page. The right choice depends on whether users need page numbers.
+
+Documentation
+
+Interactive documentation generated from the code, such as OpenAPI rendered as a
+browsable interface, is more useful than a separate document because it cannot
+become stale. It also serves as a test harness: every endpoint can be called from
+the page without writing a client.

@@ -1,0 +1,99 @@
+Sorting and Searching
+
+Why the choice of algorithm matters
+
+Two programs that produce identical output can differ enormously in how long they
+take. Sorting a list of a thousand items is instant whichever method you use.
+Sorting ten million is not, and the difference between a good and a poor choice
+becomes minutes against hours. Understanding the cost of an algorithm is
+therefore not academic: it decides whether a program is usable.
+
+Measuring cost
+
+Algorithm cost is expressed in terms of how work grows as the input grows, not in
+seconds. This is because seconds depend on the machine, while the growth pattern
+is a property of the algorithm itself.
+
+Big O notation describes the upper bound of that growth. An algorithm that takes
+roughly the same time regardless of input is O(1), constant. One that looks at
+each item once is O(n), linear. One that compares every item with every other is
+O(n squared), quadratic. One that halves the problem each time is O(log n),
+logarithmic.
+
+The practical consequence is that quadratic algorithms become unusable quickly.
+Doubling the input quadruples the work. For n equal to a million, a quadratic
+algorithm performs a trillion operations.
+
+Bubble sort and insertion sort
+
+Bubble sort repeatedly steps through the list, compares adjacent items and swaps
+them if they are out of order. It passes through the list until no swaps are
+needed. It is easy to understand and almost never the right choice, because it is
+O(n squared).
+
+Insertion sort builds a sorted section one item at a time, inserting each new item
+into its correct place. It is also O(n squared) in general, but it performs well
+on small lists and on lists that are already nearly sorted, which makes it useful
+as the base case inside faster algorithms.
+
+Merge sort
+
+Merge sort divides the list in half, sorts each half recursively, then merges the
+two sorted halves into one. The merging step is linear, and the halving produces
+log n levels, giving O(n log n) overall.
+
+Its advantage is predictability. It is always O(n log n), whatever the input. Its
+disadvantage is memory: merging needs a second array, so the space cost is O(n)
+rather than constant.
+
+Quick sort
+
+Quick sort picks a pivot element, partitions the list into items smaller and
+larger than the pivot, then sorts each partition recursively. It is O(n log n) on
+average and usually faster in practice than merge sort because it works in place
+and has good cache behaviour.
+
+The catch is the worst case. If the pivot is consistently the smallest or largest
+element, the partitions are lopsided and the cost degrades to O(n squared). This
+happens with a poor pivot choice on already sorted data, which is the common
+case. Choosing a random pivot makes the bad case vanishingly unlikely.
+
+The stability question
+
+A sort is stable if items comparing equal keep their original relative order.
+This matters when sorting by more than one key: sorting a list of people by
+surname, then stably by department, produces people grouped by department and
+alphabetical within each group. An unstable sort would scramble the surnames.
+
+Merge sort is stable. Quick sort is not, in its usual in-place form.
+
+Linear search
+
+Linear search checks each element in turn until it finds the target or reaches
+the end. It is O(n) and works on any collection, sorted or not. For small
+collections it is often the right answer, because its simplicity avoids overhead
+that more elaborate methods incur.
+
+Binary search
+
+Binary search requires a sorted collection. It compares the target with the
+middle element, discards the half that cannot contain it, and repeats. Each step
+halves the remaining range, so the cost is O(log n).
+
+The improvement is dramatic. A linear search of a million items may need a
+million comparisons; a binary search needs about twenty. A sorted phone book of a
+thousand pages can be searched in ten comparisons.
+
+The cost is the precondition. Binary search on an unsorted list gives wrong
+answers silently rather than failing, which is a common source of bugs.
+
+Choosing between them
+
+If the data is already sorted and searched many times, sort once and use binary
+search. If the data changes constantly and is searched rarely, linear search may
+be cheaper overall because sorting has to be maintained.
+
+A useful rule is to count the operations in total rather than per search. Sorting
+is O(n log n) once; the searches afterwards are O(log n) each. Enough searches
+will recover the sorting cost, and the point at which they do is worth
+calculating rather than guessing.

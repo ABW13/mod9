@@ -1,0 +1,119 @@
+Testing Software
+
+What tests are for
+
+A test is a piece of code that checks another piece of code behaves as intended.
+The purpose is not to prove the code correct, which is impossible, but to catch
+changes that break something that used to work. The value of a test is realised
+when it fails.
+
+Tests also function as documentation. A test named test_rejects_duplicate_email
+states a requirement in a form that cannot drift out of date, because it is
+executed.
+
+The testing pyramid
+
+Tests are usually described in three layers, with many of the first and few of
+the last.
+
+Unit tests exercise a single function or class in isolation, with dependencies
+replaced by fakes. They are fast and they fail precisely, pointing at the line
+that broke.
+
+Integration tests exercise several components together, such as an endpoint and
+its database. They are slower and their failures are less specific, but they
+catch problems that unit tests cannot see, such as a query that is wrong rather
+than a calculation that is wrong.
+
+End-to-end tests drive the whole system as a user would, through the interface.
+They are slowest and most fragile, and they are the only kind that can catch a
+misunderstanding of the requirement itself.
+
+The pyramid shape follows from cost. Many unit tests give fast feedback; a few
+end-to-end tests confirm the whole thing works.
+
+Arrange, act, assert
+
+A clear test has three parts. Arrange sets up the state. Act performs the
+operation being tested. Assert checks the result. Keeping them visually separate
+makes a failing test easier to read, because the reader immediately sees what was
+expected and what happened.
+
+One assertion per behaviour
+
+A test that checks five things reports which of the five failed only by where it
+stopped. Testing one behaviour per test means a failure names itself.
+
+This is a guideline rather than a rule. Several assertions about the same
+behaviour, such as the three fields of a response object, are fine. It is
+unrelated behaviours bundled together that cause trouble.
+
+Naming tests
+
+A test name should describe the behaviour, not the function. test_health_returns_200
+is more useful than test_health. When it fails in continuous integration weeks
+later, the name is often all a reader sees before opening the file.
+
+Testing edge cases
+
+Bugs cluster at boundaries. A useful habit is to test the empty case, the single
+item case, and the case at whatever limit the code enforces. An endpoint that
+validates a maximum length should be tested exactly at that length and one
+character beyond it.
+
+Common boundary cases: empty string, empty list, zero, negative numbers, the
+maximum permitted value, and input of the wrong type entirely.
+
+Testing error paths
+
+It is tempting to test only the happy path, because that is what the code was
+written for. But error handling is code, and it is the code least likely to have
+been exercised by hand.
+
+A test that a duplicate registration returns 409, or that a request without a
+token returns 401, verifies behaviour a user will eventually trigger and that
+nobody remembers to check manually.
+
+What makes a good test
+
+A good test is fast, deterministic and independent. Fast, so the suite is run
+often. Deterministic, so a failure always means the same thing. Independent, so
+tests can run in any order and one failing does not cause others to fail.
+
+Tests that depend on each other are a particular trap. If test B only passes
+because test A created a row first, then running B alone fails, and the suite
+becomes unreliable enough that people stop trusting it.
+
+Fixtures
+
+A fixture is shared setup extracted so tests do not repeat it. A database
+session, a test client, or a logged-in user are common fixtures.
+
+The trade-off is that over-shared fixtures hide what a test needs. A test that
+depends on a fixture setting up six things is harder to understand than one that
+sets up the two it uses.
+
+Assertions should be about behaviour
+
+Testing that a function calls a particular method is testing the implementation,
+not the behaviour. That test will fail when the implementation is refactored
+correctly, which trains people to ignore failures.
+
+Where possible, assert on what the code produces rather than on how it produces
+it.
+
+When not to write a test
+
+Testing a trivial getter, or a framework's own behaviour, adds maintenance cost
+for no benefit. The judgement is whether the test could plausibly fail in a way
+that matters.
+
+Continuous integration
+
+Running tests automatically on every push means a broken change is caught before
+it reaches anyone else. The value is in the automatic part: a suite that must be
+remembered is a suite that gets skipped when someone is in a hurry.
+
+A pipeline that runs tests, builds the images and lints the code catches three
+different classes of mistake, and a red result blocks the merge rather than
+becoming a task for later.

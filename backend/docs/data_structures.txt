@@ -1,0 +1,106 @@
+Data Structures
+
+Choosing a structure
+
+A data structure determines which operations are cheap and which are expensive.
+There is no best structure, only one suited to the pattern of use. The question
+to ask is always which operations happen most often.
+
+Arrays and lists
+
+An array stores items in contiguous memory, so reading the item at a given index
+is constant time. Inserting or removing in the middle is linear, because
+everything after the insertion point has to move.
+
+Appending to the end is usually constant, with an occasional expensive resize
+when the underlying buffer fills. Growing by a multiple rather than by one keeps
+the average cost constant, which is called amortised constant time.
+
+Linked lists
+
+A linked list stores each item with a pointer to the next. Inserting or removing
+at a known position is constant time, since only the pointers change. Reading the
+item at index n is linear, because the list must be walked from the start.
+
+The trade-off is therefore the reverse of an array's. Linked lists suit frequent
+insertion and removal in the middle; arrays suit frequent access by index.
+
+In practice arrays win more often than the theory suggests, because contiguous
+memory is far friendlier to modern processors and the constant factors matter.
+
+Stacks
+
+A stack is last in, first out. The two operations are push, which adds to the
+top, and pop, which removes and returns the top. Both are constant time.
+
+Stacks appear wherever work must be undone in reverse order. Function calls use
+one: when a function returns, it resumes the caller, which is the most recent
+unfinished call. Undo histories use one. Depth-first search uses one, either
+explicitly or through recursion.
+
+Queues
+
+A queue is first in, first out. Enqueue adds to the back, dequeue removes from
+the front, both constant time when implemented well.
+
+Queues appear wherever work must be processed in arrival order. Print jobs,
+message brokers, and breadth-first search all use them. A queue implemented as a
+plain list is a trap: removing from the front of a list is linear, so every
+dequeue is expensive. A deque, or a circular buffer, avoids it.
+
+Hash tables
+
+A hash table maps keys to values by computing an index from the key with a hash
+function. Lookup, insertion and deletion are O(1) on average, which is why hash
+tables underpin dictionaries, sets and caches.
+
+The word average matters. If two keys hash to the same index, a collision occurs
+and both have to be stored somehow, usually in a small list at that index. Many
+collisions degrade lookup towards linear. A good hash function spreads keys
+evenly, and the table is resized when it becomes too full.
+
+Hash tables do not preserve order. If iteration order matters, that is a
+different structure's job.
+
+Trees
+
+A tree stores items in a hierarchy. A binary search tree keeps the invariant that
+everything smaller than a node is to its left and everything larger to its right,
+so a search follows one path from root to leaf, costing O(log n) when the tree is
+balanced.
+
+The catch is that a tree built from sorted input becomes a chain, and the cost
+degrades to linear. Self-balancing trees, such as the red-black trees used in
+many standard libraries, rearrange themselves on insertion to keep the height
+logarithmic. They give up a small constant factor in exchange for a guaranteed
+worst case.
+
+Heaps
+
+A heap is a tree with the rule that every parent is smaller than its children, or
+larger, depending on the direction. It does not keep items fully sorted; it only
+guarantees that the smallest item, for a min-heap, is at the root.
+
+That weak guarantee is enough for the operations heaps are used for. Extracting
+the smallest item is O(log n) and inserting is O(log n). A priority queue is a
+heap: patients in an emergency department are not seen in arrival order but in
+severity order, and a heap provides the next most severe in logarithmic time.
+
+Graphs
+
+A graph is a set of nodes and the edges between them. Graphs model networks,
+dependencies, routes and relationships, which is most things worth modelling.
+
+Graphs are stored either as an adjacency list, where each node holds its
+neighbours, or as an adjacency matrix, a grid of whether each pair is connected.
+The list uses memory proportional to the edges and is right for sparse graphs.
+The matrix answers whether two nodes are connected in constant time and is right
+for dense ones.
+
+Sets
+
+A set stores unique items and answers membership questions quickly, usually with
+a hash table underneath. Converting a list to a set before checking membership
+turns an O(n) check repeated n times into a single O(n) conversion plus constant
+time lookups. This single change turns many quadratic algorithms linear and is
+one of the most useful pieces of practical knowledge in programming.

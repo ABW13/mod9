@@ -1,0 +1,102 @@
+Git and Version Control
+
+Why version control
+
+Version control records the history of a project so that any earlier state can be
+recovered. That makes several things possible that are otherwise painful:
+reverting a change that broke something, finding when a bug was introduced, and
+working on two features at once without them interfering.
+
+The commit is the unit of history
+
+A commit is a snapshot of the whole project at a moment, with a message
+explaining why the change was made. Git stores snapshots efficiently, so
+committing often costs very little.
+
+The message should explain the reason, not the contents. A diff already shows
+what changed; the message is the only place the reasoning can be recorded, and it
+is what a reader needs months later.
+
+Small commits
+
+A commit should do one thing. A commit that adds a feature and reformats three
+unrelated files is hard to review, hard to revert selectively, and hard to
+understand later.
+
+Small commits also make the history bisectable: when a bug appears, testing
+individual commits narrows down where it came from quickly.
+
+Branches
+
+A branch is a movable pointer to a commit. Creating one is instant and cheap,
+which is why branching for every feature is practical.
+
+Working on a branch keeps the main line stable. Main should always be in a state
+that builds and passes tests, so that anyone can start from it.
+
+Merging and rebasing
+
+Merging combines two branches and creates a merge commit recording that they
+joined. The history preserves the shape of the work.
+
+Rebasing replays your commits on top of another branch, producing a linear
+history as though the work had been done in that order all along. The history is
+easier to read, but the commits are rewritten, which means rebasing a branch that
+others have pulled causes confusion.
+
+The common convention is to rebase a private branch before sharing it, and to
+merge once it is shared.
+
+Pull requests
+
+A pull request proposes merging one branch into another. It provides a place for
+review, for automated checks to run, and for discussion to be recorded alongside
+the change.
+
+Review catches more than mistakes. A reviewer who asks why a change is needed
+often finds that the requirement was misunderstood, which is cheaper to fix
+before the code is merged than after.
+
+Continuous integration on a pull request runs the tests against the proposed
+merge, so a branch that passes locally but conflicts with another change is
+caught before it lands.
+
+Ignoring files
+
+Some files should never be committed: local environment files, credentials,
+build output, and anything generated. A gitignore file lists the patterns to
+exclude.
+
+The important case is secrets. A committed key stays in the history even after
+the file is deleted, because every commit containing it remains reachable. Once
+a secret is committed it must be rotated, not just removed.
+
+The distinction between the ignore file and the Docker equivalent is worth
+knowing: one tool reads each, and neither substitutes for the other.
+
+Undoing things
+
+Reverting creates a new commit that undoes an earlier one, which is safe on
+shared history because nothing is rewritten.
+
+Resetting moves the branch pointer, which rewrites history and is therefore only
+safe on commits nobody else has.
+
+Amending replaces the most recent commit, useful for a typo in a message or a
+file forgotten from the previous commit.
+
+The distinction that matters is whether the history has been shared. Rewriting
+shared history forces everyone else to recover from it.
+
+Working with remotes
+
+A remote is another copy of the repository, usually a server. Pushing sends your
+commits to it; pulling brings theirs down.
+
+Fetching retrieves their commits without merging, which lets you inspect what
+changed before deciding how to incorporate it. That is often safer than a blind
+pull.
+
+The difference between local and remote state is the source of most confusing
+errors. A rejected push almost always means the remote has commits you do not,
+and the answer is to pull first rather than to force.
