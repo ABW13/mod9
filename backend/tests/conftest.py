@@ -17,9 +17,8 @@ os.environ["CHROMA_PATH"] = "./data/test_chroma"
 os.environ["UPLOAD_DIR"] = "./data/test_uploads"
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import app
+from fastapi.testclient import TestClient
 
 DATA = Path("./data")
 

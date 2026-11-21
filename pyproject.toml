@@ -1,0 +1,9 @@
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# BLE001: catching broadly is intended -- the health check and the
+# Streamlit handlers must report a failure rather than crash.
+# B008: Depends() in a default argument is FastAPI's documented pattern.
+# E501: line length, handled at 100 above.
+ignore = ["BLE001", "E501", "B008"]

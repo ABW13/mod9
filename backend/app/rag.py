@@ -1,7 +1,6 @@
 """Retrieval-augmented generation over per-user documents."""
 
 from pathlib import Path
-from typing import Optional
 
 import chromadb
 import requests
@@ -23,8 +22,8 @@ def iter_paragraphs(text: str):
             yield cleaned
 
 
-def chunk_text(text: str, chunk_words: Optional[int] = None,
-               overlap_words: Optional[int] = None):
+def chunk_text(text: str, chunk_words: int | None = None,
+               overlap_words: int | None = None):
     """Split text into overlapping chunks, respecting paragraph boundaries.
 
     Consecutive chunks share their final ``overlap_words`` words, so a passage
@@ -114,7 +113,7 @@ def delete_document_chunks(owner_id: int, document_id: int) -> None:
     ]})
 
 
-def count_chunks(owner_id: Optional[int] = None) -> int:
+def count_chunks(owner_id: int | None = None) -> int:
     """Count stored chunks, optionally restricted to one owner."""
     collection = get_collection()
     if owner_id is None:
@@ -144,7 +143,7 @@ Question: {question}
 Answer:"""
 
 
-def _confidence_label(best: Optional[float], threshold: float) -> str:
+def _confidence_label(best: float | None, threshold: float) -> str:
     """Map the closest distance to a label. Smaller distance is closer."""
     if best is None:
         return "low"
@@ -155,7 +154,7 @@ def _confidence_label(best: Optional[float], threshold: float) -> str:
     return "low"
 
 
-def retrieve(question: str, owner_id: int, n_results: Optional[int] = None):
+def retrieve(question: str, owner_id: int, n_results: int | None = None):
     """Return the closest chunks from one user's documents.
 
     The `where` clause restricts the search to chunks this owner ingested, so a

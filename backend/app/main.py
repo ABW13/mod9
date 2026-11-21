@@ -3,9 +3,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import rag
 from .config import settings
 from .database import create_all
-from . import rag
 from .routers import ask, auth, documents
 
 app = FastAPI(

@@ -5,7 +5,7 @@ app, so the token handling and error reporting live in one place.
 """
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -52,7 +52,7 @@ def login(email: str, password: str) -> str:
     return payload["access_token"]
 
 
-def _headers(token: Optional[str]) -> dict:
+def _headers(token: str | None) -> dict:
     return {"Authorization": f"Bearer {token}"} if token else {}
 
 

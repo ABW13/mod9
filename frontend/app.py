@@ -1,8 +1,7 @@
 """Study Buddy — chat with your own study documents."""
 
-import streamlit as st
-
 import api_client as api
+import streamlit as st
 
 st.set_page_config(page_title="Study Buddy", page_icon="📚", layout="wide")
 
@@ -152,27 +151,26 @@ if prompt := st.chat_input("Ask a question about your notes…"):
     with st.chat_message("user"):
         st.write(prompt)
 
-    with st.chat_message("assistant"):
-        with st.spinner("Searching your documents…"):
-            try:
-                result = api.ask(st.session_state.token, prompt)
-                st.write(result["answer"])
-                sources = result.get("sources", [])
-                if sources:
-                    label = result.get("confidence", "unknown")
-                    with st.expander(f"Sources ({label} confidence)"):
-                        for src in sources:
-                            dist = src.get("distance")
-                            caption = f"{src['source']} · chunk {src['chunk']}"
-                            if dist is not None:
-                                caption += f" · distance {dist:.3f}"
-                            st.caption(caption)
-                            st.write(src["text"][:300] + "…")
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": result["answer"],
-                    "sources": sources,
-                    "confidence": result.get("confidence"),
-                })
-            except api.ApiError as exc:
-                st.error(f"Error: {exc}")
+    with st.chat_message("assistant"), st.spinner("Searching your documents…"):
+        try:
+            result = api.ask(st.session_state.token, prompt)
+            st.write(result["answer"])
+            sources = result.get("sources", [])
+            if sources:
+                label = result.get("confidence", "unknown")
+                with st.expander(f"Sources ({label} confidence)"):
+                    for src in sources:
+                        dist = src.get("distance")
+                        caption = f"{src['source']} · chunk {src['chunk']}"
+                        if dist is not None:
+                            caption += f" · distance {dist:.3f}"
+                        st.caption(caption)
+                        st.write(src["text"][:300] + "…")
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": result["answer"],
+                "sources": sources,
+                "confidence": result.get("confidence"),
+            })
+        except api.ApiError as exc:
+            st.error(f"Error: {exc}")
