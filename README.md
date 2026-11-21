@@ -74,15 +74,13 @@ model.
     git clone git@github.com:ABW13/study-buddy.git
     cd study-buddy
     cp .env.example .env
+    # Set a real signing key before the first start.
+    sed -i "s/^SECRET_KEY=.*/SECRET_KEY=$(openssl rand -hex 32)/" .env
     docker compose up --build
 
-Two values in `.env` need attention before this is anything but a local demo:
-
-- `SECRET_KEY` is blank in the example file. Set it to a long random string;
-  it signs every JWT the app issues.
-- `OLLAMA_URL` is already set to the Compose service name, which is correct
-  inside the stack. It would be wrong on a host machine, where the container
-  name does not resolve.
+`OLLAMA_URL` is already the Compose service name, which is correct inside the
+stack. It would be wrong on a host machine, where the container name does not
+resolve.
 
 Then pull the model. The Ollama image ships with **no** models, so this step is
 required. Without it the server answers requests about its own status and
