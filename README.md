@@ -342,7 +342,7 @@ boundary appears intact somewhere.
 
 These are starting values, not measured ones. Tuning them would mean running the
 same question set at different settings and comparing the distances — the method
-used for the confidence threshold below.
+used for the confidence threshold above.
 
 ### llama3.2:1b
 
