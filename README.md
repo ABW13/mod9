@@ -322,3 +322,68 @@ them, and afterwards the model must be pulled again and documents re-uploaded.
 - **The guardrail checks retrieval, not the answer.** An entailment check
   comparing the generated answer against the cited passages would catch the
   drift the distance threshold cannot see.
+
+## Design decisions
+
+A few choices shaped how this works, and each has a cost worth naming.
+
+### Chunking at 220 words with 50 words of overlap
+
+A few hundred words is the usual starting point for text chunks, and 220 sits
+inside that band. Smaller chunks match a question precisely but can lose the
+surrounding sentence that makes them intelligible; larger ones carry context but
+dilute the embedding, since a vector for a thousand words is a summary of all of
+them and may resemble the query only weakly.
+
+The fifty-word overlap exists because an idea that straddles a chunk boundary
+would otherwise be split in two, with neither half complete. Repeating the tail
+of each chunk at the head of the next guarantees that any passage spanning a
+boundary appears intact somewhere.
+
+These are starting values, not measured ones. Tuning them would mean running the
+same question set at different settings and comparing the distances — the method
+used for the confidence threshold below.
+
+### llama3.2:1b
+
+Speed on CPU. Generation is the slowest part of the pipeline and the difference
+between a one-billion and a three-billion parameter model is several times the
+response time on the same hardware. For a pipeline that supplies the relevant
+passages and asks for a grounded answer, the smaller model is good enough, and
+the retrieved context does the work that a larger model's world knowledge would
+otherwise cover.
+
+The trade-off is real: a smaller model is likelier to drift from the supplied
+text, which is why the citations matter.
+
+### Refusing rather than answering with a caveat
+
+When retrieval finds nothing close enough, the application refuses instead of
+generating an answer from whatever came back. The alternative — answering with a
+warning attached — is worse for this use case, because a confident wrong answer
+reads exactly like a correct one and a study tool that occasionally invents
+things is not one you would rely on.
+
+The cost is false refusals: a question the corpus does cover can be turned away
+if nothing retrieved resembles it, which usually traces back to chunking. That
+is the failure to watch for, and it is why retrieval runs against a question set
+with known answers rather than being assumed to work.
+
+### Citing sources on every answer
+
+The distance threshold catches retrieval failure, not drift in generation. A
+model given a good match can still add a claim the passage does not support, and
+nothing in the numeric guardrail detects that.
+
+Returning the cited passages is what makes it visible: a reader can compare the
+answer against what it was drawn from and see the gap. It does not prevent a bad
+answer, it makes one detectable, which is the more useful property for a system
+whose weakness is confident fabrication.
+
+### One volume for the database and the vector store
+
+Both are generated state that must survive a restart, and splitting them across
+two volumes buys nothing here — they are written and read together. One
+`sqlite_data` volume holding SQLite, ChromaDB and the uploaded files means a
+single `docker compose down -v` resets the application cleanly, which is what
+you want during development and what the setup instructions rely on.
