@@ -144,6 +144,10 @@ for message in st.session_state.messages:
                     st.write(src["text"][:300] + "…")
 
 if prompt := st.chat_input("Ask a question about your notes…"):
+    if not prompt.strip():
+        st.warning("Please enter a question.")
+        st.stop()
+
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.write(prompt)
