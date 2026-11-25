@@ -14,39 +14,16 @@ than answered from unrelated text.
 
 ## Architecture
 
-    Browser
-       |  port 8501
-       v
-  +------------------+          +------------------+
-  | Streamlit        |  HTTP    | FastAPI          |
-  | frontend         | -------> | backend          |
-  | :8501            |          | :8000            |
-  +------------------+          +--------+---------+
-                                         |
-                        +----------------+----------------+
-                        |                                 |
-                        v                                 v
-              +------------------+              +------------------+
-              | Ollama           |              | SQLite           |
-              | :11434           |              | users            |
-              | llama3.2:1b      |              | documents        |
-              +--------+---------+              | questions        |
-                       |                        +------------------+
-                       v                                 |
-              +------------------+              +------------------+
-              | ollama_data vol  |              | ChromaDB         |
-              | model weights    |              | chunk vectors    |
-              +------------------+              | + metadata       |
-                                                +------------------+
-                                                         |
-                                                +------------------+
-                                                | sqlite_data vol  |
-                                                | SQLite + Chroma  |
-                                                | + uploaded files |
-                                                +------------------+
-
-Three services on one Compose network, addressed by service name. The frontend
-never touches the database or the vector store; it talks to the backend only.
+```mermaid
+flowchart LR
+    U[Browser] -->|8501| F[Streamlit frontend]
+    F -->|backend:8000| A[FastAPI backend]
+    A -->|ollama:11434| O[Ollama llama3.2:1b]
+    A --> D[(SQLite users documents questions)]
+    A --> C[(ChromaDB chunk vectors and metadata)]
+    O --- M[(ollama_data volume)]
+    D --- V[(sqlite_data volume)]
+```
 
 ## Request flow
 
